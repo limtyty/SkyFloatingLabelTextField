@@ -53,14 +53,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 styles.font               = .systemFont(ofSize: 14, weight: 1.0)
                 styles.placeholderFont    = .systemFont(ofSize: 14, weight: 0.1)
             #endif
-
-            // Line
-            styles.lineHeight = 2
-            styles.lineColor          = .brown
-
-            // Selected line
-            styles.selectedLineHeight = 3
-            styles.selectedLineColor  = .orange
         }
 
         // MARK: - Icon appearance

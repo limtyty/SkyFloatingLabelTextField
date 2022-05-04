@@ -36,8 +36,6 @@ public class ThemedTextField: SkyFloatingLabelTextField {
 
         errorColor = .red
         textColor = .white
-        selectedLineColor = blueColor
-        lineColor = .white
         titleColor = .white
         selectedTitleColor = blueColor
     }

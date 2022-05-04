@@ -178,10 +178,8 @@ class ShowcaseExampleViewController: UIViewController, UITextFieldDelegate {
         textField.tintColor = overcastBlueColor
 
         textField.textColor = darkGreyColor
-        textField.lineColor = lightGreyColor
 
         textField.selectedTitleColor = overcastBlueColor
-        textField.selectedLineColor = overcastBlueColor
 
         // Set custom fonts for the title, placeholder and textfield labels
         textField.titleLabel.font = UIFont(name: "AppleSDGothicNeo-Regular", size: 12)

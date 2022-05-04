@@ -300,7 +300,7 @@ open class SkyFloatingLabelTextFieldWithIcon: SkyFloatingLabelTextField {
     }
 
     /**
-     Calculates the bounds for the placeholder component of the control. 
+     Calculates the bounds for the placeholder component of the control.
      Override to create a custom size textbox in the control.
      - parameter bounds: The current bounds of the placeholder component
      - returns: The rectangle that the placeholder component should render in
@@ -308,7 +308,7 @@ open class SkyFloatingLabelTextFieldWithIcon: SkyFloatingLabelTextField {
     override open func placeholderRect(forBounds bounds: CGRect) -> CGRect {
         var rect = super.placeholderRect(forBounds: bounds)
         if isLTRLanguage {
-            rect.origin.x += CGFloat(iconWidth + iconMarginLeft)
+            rect.origin.x += CGFloat(iconMarginLeft)
         } else {
             // don't change the editing field X position for RTL languages
         }
@@ -326,27 +326,27 @@ open class SkyFloatingLabelTextFieldWithIcon: SkyFloatingLabelTextField {
         let textWidth: CGFloat = bounds.size.width
         if isLTRLanguage {
             iconLabel.frame = CGRect(
-                x: 0,
-                y: bounds.size.height - textHeight() - iconMarginBottom,
+                x: 8,
+                y: (bounds.size.height - iconWidth) / 2 - iconMarginBottom,
                 width: iconWidth,
                 height: textHeight()
             )
             iconImageView.frame = CGRect(
-                x: 0,
-                y: bounds.size.height - textHeight() - iconMarginBottom,
+                x: 8,
+                y: bounds.size.height / 2 - iconWidth - iconMarginBottom ,
                 width: iconWidth,
                 height: textHeight()
             )
         } else {
             iconLabel.frame = CGRect(
                 x: textWidth - iconWidth,
-                y: bounds.size.height - textHeight() - iconMarginBottom,
+                y: bounds.size.height / 2 - textHeight() - iconMarginBottom,
                 width: iconWidth,
                 height: textHeight()
             )
             iconImageView.frame = CGRect(
                 x: textWidth - iconWidth,
-                y: bounds.size.height - textHeight() - iconMarginBottom,
+                y: bounds.size.height / 2 - textHeight() - iconMarginBottom,
                 width: iconWidth,
                 height: textHeight()
             )

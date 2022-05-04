@@ -62,7 +62,7 @@ public class IconTextField: SkyFloatingLabelTextField {
         if hasErrorMessage {
             iconLabel?.textColor = errorColor
         } else {
-            iconLabel?.textColor = isEditing ? selectedLineColor : lineColor
+            iconLabel?.textColor = textColor
         }
     }
 

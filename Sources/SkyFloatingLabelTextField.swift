@@ -127,7 +127,7 @@ open class SkyFloatingLabelTextField: UITextField { // swiftlint:disable:this ty
         )
       }else{
         let normalAttribute = [NSAttributedString.Key.foregroundColor: color, NSAttributedString.Key.font: font]
-        let requiredAttribute = [NSAttributedString.Key.foregroundColor: UIColor.red, NSAttributedString.Key.font: UIFont.systemFont(ofSize: 25)]
+        let requiredAttribute = [NSAttributedString.Key.foregroundColor: UIColor.red, NSAttributedString.Key.font: font]
 
         let partOne = NSMutableAttributedString(string: placeholder, attributes: normalAttribute)
         let partTwo = NSMutableAttributedString(string: " *", attributes: requiredAttribute)

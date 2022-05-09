@@ -17,8 +17,8 @@ import UIKit
  .bottom displays the error below the text field in a dedicated `errorLabel`.
  */
 public enum ErrorMessagePlacement {
-    case `default`
-    case bottom
+  case `default`
+  case bottom
 }
 
 /**
@@ -26,703 +26,723 @@ public enum ErrorMessagePlacement {
  */
 @IBDesignable
 open class SkyFloatingLabelTextField: UITextField { // swiftlint:disable:this type_body_length
-    /**
-     A Boolean value that determines if the language displayed is LTR.
-     Default value set automatically from the application language settings.
-     */
-    @objc open var isLTRLanguage: Bool = UIApplication.shared.userInterfaceLayoutDirection == .leftToRight {
-        didSet {
-            updateTextAligment()
-        }
+  /**
+   A Boolean value that determines if the language displayed is LTR.
+   Default value set automatically from the application language settings.
+   */
+  @objc open var isLTRLanguage: Bool = UIApplication.shared.userInterfaceLayoutDirection == .leftToRight {
+    didSet {
+      updateTextAligment()
+    }
+  }
+
+  fileprivate func updateTextAligment() {
+    if isLTRLanguage {
+      textAlignment = .left
+      titleLabel.textAlignment = .left
+      errorLabel.textAlignment = .left
+    } else {
+      textAlignment = .right
+      titleLabel.textAlignment = .right
+      errorLabel.textAlignment = .right
     }
 
-    fileprivate func updateTextAligment() {
-        if isLTRLanguage {
-            textAlignment = .left
-            titleLabel.textAlignment = .left
-            errorLabel.textAlignment = .left
-        } else {
-            textAlignment = .right
-            titleLabel.textAlignment = .right
-            errorLabel.textAlignment = .right
-        }
-
-        // Override error message default alignment
-        if let errorLabelAlignment = errorLabelAlignment {
-            errorLabel.textAlignment = errorLabelAlignment
-        }
+    // Override error message default alignment
+    if let errorLabelAlignment = errorLabelAlignment {
+      errorLabel.textAlignment = errorLabelAlignment
     }
+  }
 
-    // MARK: Animation timing
+  // MARK: Animation timing
 
-    /// The value of the title appearing duration
-    @objc dynamic open var titleFadeInDuration: TimeInterval = 0.2
-    /// The value of the title disappearing duration
-    @objc dynamic open var titleFadeOutDuration: TimeInterval = 0.3
+  /// The value of the title appearing duration
+  @objc dynamic open var titleFadeInDuration: TimeInterval = 0.2
+  /// The value of the title disappearing duration
+  @objc dynamic open var titleFadeOutDuration: TimeInterval = 0.3
 
-    // MARK: Colors
+  // MARK: Colors
 
-    fileprivate var cachedTextColor: UIColor?
+  fileprivate var cachedTextColor: UIColor?
 
-    /// A UIColor value that determines the text color of the editable text
-    @IBInspectable
-    override dynamic open var textColor: UIColor? {
-        set {
-            cachedTextColor = newValue
-            updateControl(false)
-        }
-        get {
-            return cachedTextColor
-        }
+  /// A UIColor value that determines the text color of the editable text
+  @IBInspectable
+  override dynamic open var textColor: UIColor? {
+    set {
+      cachedTextColor = newValue
+      updateControl(false)
     }
-
-    /// A UIColor value that determines text color of the placeholder label
-    @IBInspectable dynamic open var placeholderColor: UIColor = UIColor.lightGray {
-        didSet {
-            updatePlaceholder()
-        }
+    get {
+      return cachedTextColor
     }
+  }
+
+  /// A UIColor value that determines text color of the placeholder label
+  @IBInspectable dynamic open var placeholderColor: UIColor = UIColor.lightGray {
+    didSet {
+      updatePlaceholder()
+    }
+  }
 
   /// A Bool value that determines text is required
   @IBInspectable dynamic open var isRequired: Bool = false {
-      didSet {
-          updatePlaceholder()
-      }
+    didSet {
+      updatePlaceholder()
+    }
   }
 
-    /// A UIFont value that determines text color of the placeholder label
-    @objc dynamic open var placeholderFont: UIFont? {
-        didSet {
-            updatePlaceholder()
-        }
+  /// A UIFont value that determines text color of the placeholder label
+  @objc dynamic open var placeholderFont: UIFont? {
+    didSet {
+      updatePlaceholder()
+    }
+  }
+
+  /// A `ErrorMessagePlacement` value that determines where the error message will be displayed.
+  open var errorMessagePlacement: ErrorMessagePlacement = .default {
+    didSet {
+      updateControl()
+      updatePlaceholder()
+    }
+  }
+
+  /// An `NSTextAlignment` value that determines the error label text alignment.
+  open var errorLabelAlignment: NSTextAlignment? {
+    didSet {
+      updateTextAligment()
+    }
+  }
+
+  fileprivate func updatePlaceholder() {
+    guard let placeholder = placeholder, let font = placeholderFont ?? font else {
+      return
+    }
+    let color = isEnabled ? placeholderColor : disabledColor
+#if swift(>=4.2)
+    if !isRequired {
+      attributedPlaceholder = NSAttributedString(
+        string: placeholder,
+        attributes: [
+          NSAttributedString.Key.foregroundColor: color, NSAttributedString.Key.font: font
+        ]
+      )
+    }else{
+      let normalAttribute = [NSAttributedString.Key.foregroundColor: color, NSAttributedString.Key.font: font]
+      let requiredAttribute = [NSAttributedString.Key.foregroundColor: UIColor.red, NSAttributedString.Key.font: font]
+
+      let partOne = NSMutableAttributedString(string: placeholder, attributes: normalAttribute)
+      let partTwo = NSMutableAttributedString(string: " *", attributes: requiredAttribute)
+      partOne.append(partTwo)
+      attributedPlaceholder = partOne
+    }
+#elseif swift(>=4.0)
+    attributedPlaceholder = NSAttributedString(
+      string: placeholder,
+      attributes: [
+        NSAttributedStringKey.foregroundColor: color, NSAttributedStringKey.font: font
+      ]
+    )
+#else
+    attributedPlaceholder = NSAttributedString(
+      string: placeholder,
+      attributes: [NSForegroundColorAttributeName: color, NSFontAttributeName: font]
+    )
+#endif
+  }
+
+  /// A UIFont value that determines the text font of the title label
+  @objc dynamic open var titleFont: UIFont = .systemFont(ofSize: 13) {
+    didSet {
+      updateTitleLabel()
+    }
+  }
+
+  /// A UIColor value that determines the text color of the title label when in the normal state
+  @IBInspectable dynamic open var titleColor: UIColor = .gray {
+    didSet {
+      updateTitleColor()
+    }
+  }
+
+  /// A UIColor value that determines the color used for the label displaying the error message
+  @IBInspectable dynamic open var errorColor: UIColor = .red {
+    didSet {
+      updateColors()
+    }
+  }
+
+  /// A UIColor value that determines the color used for the line when error message is not `nil`
+  @IBInspectable dynamic open var lineErrorColor: UIColor? {
+    didSet {
+      updateColors()
+    }
+  }
+
+  /// A UIColor value that determines the color used for the text when error message is not `nil`
+  @IBInspectable dynamic open var textErrorColor: UIColor? {
+    didSet {
+      updateColors()
+    }
+  }
+
+  /// A UIColor value that determines the color used for the title label when error message is not `nil`
+  @IBInspectable dynamic open var titleErrorColor: UIColor? {
+    didSet {
+      updateColors()
+    }
+  }
+
+  /// A UIColor value that determines the color used for the title label and line when text field is disabled
+  @IBInspectable dynamic open var disabledColor: UIColor = UIColor(white: 0.88, alpha: 1.0) {
+    didSet {
+      updateControl()
+      updatePlaceholder()
+    }
+  }
+
+  /// A UIColor value that determines the text color of the title label when editing
+  @IBInspectable dynamic open var selectedTitleColor: UIColor = .blue {
+    didSet {
+      updateTitleColor()
+    }
+  }
+
+  // MARK: View components
+
+  /// The internal `UILabel` that displays the selected, deselected title or error message based on the current state.
+  open var titleLabel: UILabel!
+
+  /// The internal `UILabel` that displays error messsage if `errorMessagePlacement` is `.bottom`.
+  open var errorLabel: UILabel!
+
+  // MARK: Properties
+
+  /**
+   The formatter used before displaying content in the title label.
+   This can be the `title`, `selectedTitle` or the `errorMessage`.
+   The default implementation converts the text to uppercase.
+   */
+  open var titleFormatter: ((String) -> String) = { (text: String) -> String in
+    if #available(iOS 9.0, *) {
+      return text.localizedUppercase
+    } else {
+      return text.uppercased()
+    }
+  }
+
+  /**
+   Identifies whether the text object should hide the text being entered.
+   */
+  override open var isSecureTextEntry: Bool {
+    set {
+      super.isSecureTextEntry = newValue
+      fixCaretPosition()
+    }
+    get {
+      return super.isSecureTextEntry
+    }
+  }
+
+  /// A String value for the error message to display.
+  @IBInspectable
+  open var errorMessage: String? {
+    didSet {
+      updateControl(true)
+    }
+  }
+
+  /// The backing property for the highlighted property
+  fileprivate var _highlighted: Bool = false
+
+  /**
+   A Boolean value that determines whether the receiver is highlighted.
+   When changing this value, highlighting will be done with animation
+   */
+  override open var isHighlighted: Bool {
+    get {
+      return _highlighted
+    }
+    set {
+      _highlighted = newValue
+      updateTitleColor()
+    }
+  }
+
+  /// A Boolean value that determines whether the textfield is being edited or is selected.
+  open var editingOrSelected: Bool {
+    return super.isEditing || isSelected
+  }
+
+  /// A Boolean value that determines whether the receiver has an error message.
+  open var hasErrorMessage: Bool {
+    return errorMessage != nil && errorMessage != ""
+  }
+
+  fileprivate var _renderingInInterfaceBuilder: Bool = false
+
+  /// The text content of the textfield
+  @IBInspectable
+  override open var text: String? {
+    didSet {
+      updateControl(false)
+    }
+  }
+
+  /**
+   The String to display when the input field is empty.
+   The placeholder can also appear in the title label when both `title` `selectedTitle` and are `nil`.
+   */
+  @IBInspectable
+  override open var placeholder: String? {
+    didSet {
+      setNeedsDisplay()
+      updatePlaceholder()
+      updateTitleLabel()
+    }
+  }
+
+  /// The String to display when the textfield is editing and the input is not empty.
+  @IBInspectable open var selectedTitle: String? {
+    didSet {
+      updateControl()
+    }
+  }
+
+  /// The String to display when the textfield is not editing and the input is not empty.
+  @IBInspectable open var title: String? {
+    didSet {
+      updateControl()
+    }
+  }
+
+  // Determines whether the field is selected. When selected, the title floats above the textbox.
+  open override var isSelected: Bool {
+    didSet {
+      updateControl(true)
+    }
+  }
+
+  // MARK: - Initializers
+
+  /**
+   Initializes the control
+   - parameter frame the frame of the control
+   */
+  override public init(frame: CGRect) {
+    super.init(frame: frame)
+    init_SkyFloatingLabelTextField()
+  }
+
+  /**
+   Intialzies the control by deserializing it
+   - parameter aDecoder the object to deserialize the control from
+   */
+  required public init?(coder aDecoder: NSCoder) {
+    super.init(coder: aDecoder)
+    init_SkyFloatingLabelTextField()
+  }
+
+  fileprivate final func init_SkyFloatingLabelTextField() {
+    borderStyle = .roundedRect
+    createTitleLabel()
+    createErrorLabel()
+    updateColors()
+    addEditingChangedObserver()
+    updateTextAligment()
+  }
+
+  fileprivate func addEditingChangedObserver() {
+    self.addTarget(self, action: #selector(SkyFloatingLabelTextField.editingChanged), for: .editingChanged)
+  }
+
+  /**
+   Invoked when the editing state of the textfield changes. Override to respond to this change.
+   */
+  @objc open func editingChanged() {
+    updateControl(true)
+    updateTitleLabel(true)
+  }
+
+  // MARK: create components
+
+  fileprivate func createTitleLabel() {
+    let titleLabel = UILabel()
+    titleLabel.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+    titleLabel.backgroundColor = .white
+    titleLabel.layer.borderWidth = 0.0
+    titleLabel.font = titleFont
+    if !isRequired {
+      attributedPlaceholder = NSAttributedString(
+        string: placeholder,
+        attributes: [
+          NSAttributedString.Key.foregroundColor: color, NSAttributedString.Key.font: font
+        ]
+      )
+    }else{
+      let normalAttribute = [NSAttributedString.Key.foregroundColor: color, NSAttributedString.Key.font: font]
+      let requiredAttribute = [NSAttributedString.Key.foregroundColor: UIColor.red, NSAttributedString.Key.font: font]
+
+      let partOne = NSMutableAttributedString(string: placeholder, attributes: normalAttribute)
+      let partTwo = NSMutableAttributedString(string: " *", attributes: requiredAttribute)
+      partOne.append(partTwo)
+      attributedPlaceholder = partOne
     }
 
-    /// A `ErrorMessagePlacement` value that determines where the error message will be displayed.
-    open var errorMessagePlacement: ErrorMessagePlacement = .default {
-        didSet {
-            updateControl()
-            updatePlaceholder()
-        }
+    titleLabel.alpha = 0.0
+    titleLabel.textColor = titleColor
+
+    addSubview(titleLabel)
+    self.titleLabel = titleLabel
+  }
+
+  fileprivate func createErrorLabel() {
+    let errorLabel = UILabel()
+    errorLabel.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+    errorLabel.font = titleFont
+    errorLabel.alpha = 0.0
+    errorLabel.textColor = errorColor
+
+    addSubview(errorLabel)
+    self.errorLabel = errorLabel
+  }
+
+  // MARK: Responder handling
+
+  /**
+   Attempt the control to become the first responder
+   - returns: True when successfull becoming the first responder
+   */
+  @discardableResult
+  override open func becomeFirstResponder() -> Bool {
+    let result = super.becomeFirstResponder()
+    updateControl(true)
+    return result
+  }
+
+  /**
+   Attempt the control to resign being the first responder
+   - returns: True when successfull resigning being the first responder
+   */
+  @discardableResult
+  override open func resignFirstResponder() -> Bool {
+    let result = super.resignFirstResponder()
+    updateControl(true)
+    return result
+  }
+
+  /// update colors when is enabled changed
+  override open var isEnabled: Bool {
+    didSet {
+      updateControl()
+      updatePlaceholder()
+    }
+  }
+
+  // MARK: - View updates
+
+  fileprivate func updateControl(_ animated: Bool = false) {
+    updateColors()
+    updateTitleLabel(animated)
+  }
+
+  // MARK: - Color updates
+
+  /// Update the colors for the control. Override to customize colors.
+  open func updateColors() {
+    updateTitleColor()
+    updateTextColor()
+    updateErrorLabelColor()
+  }
+
+  fileprivate func updateErrorLabelColor() {
+    errorLabel.textColor = errorColor
+  }
+
+  fileprivate func updateTitleColor() {
+    guard let titleLabel = titleLabel else {
+      return
     }
 
-    /// An `NSTextAlignment` value that determines the error label text alignment.
-    open var errorLabelAlignment: NSTextAlignment? {
-        didSet {
-            updateTextAligment()
-        }
-    }
-
-    fileprivate func updatePlaceholder() {
-        guard let placeholder = placeholder, let font = placeholderFont ?? font else {
-            return
-        }
-        let color = isEnabled ? placeholderColor : disabledColor
-        #if swift(>=4.2)
-      if !isRequired {
-        attributedPlaceholder = NSAttributedString(
-            string: placeholder,
-            attributes: [
-                NSAttributedString.Key.foregroundColor: color, NSAttributedString.Key.font: font
-            ]
-        )
-      }else{
-        let normalAttribute = [NSAttributedString.Key.foregroundColor: color, NSAttributedString.Key.font: font]
-        let requiredAttribute = [NSAttributedString.Key.foregroundColor: UIColor.red, NSAttributedString.Key.font: font]
-
-        let partOne = NSMutableAttributedString(string: placeholder, attributes: normalAttribute)
-        let partTwo = NSMutableAttributedString(string: " *", attributes: requiredAttribute)
-        partOne.append(partTwo)
-        attributedPlaceholder = partOne
-      }
-        #elseif swift(>=4.0)
-        attributedPlaceholder = NSAttributedString(
-            string: placeholder,
-            attributes: [
-                NSAttributedStringKey.foregroundColor: color, NSAttributedStringKey.font: font
-            ]
-        )
-        #else
-        attributedPlaceholder = NSAttributedString(
-            string: placeholder,
-            attributes: [NSForegroundColorAttributeName: color, NSFontAttributeName: font]
-        )
-        #endif
-    }
-
-    /// A UIFont value that determines the text font of the title label
-    @objc dynamic open var titleFont: UIFont = .systemFont(ofSize: 13) {
-        didSet {
-            updateTitleLabel()
-        }
-    }
-
-    /// A UIColor value that determines the text color of the title label when in the normal state
-    @IBInspectable dynamic open var titleColor: UIColor = .gray {
-        didSet {
-            updateTitleColor()
-        }
-    }
-
-    /// A UIColor value that determines the color used for the label displaying the error message
-    @IBInspectable dynamic open var errorColor: UIColor = .red {
-        didSet {
-            updateColors()
-        }
-    }
-
-    /// A UIColor value that determines the color used for the line when error message is not `nil`
-    @IBInspectable dynamic open var lineErrorColor: UIColor? {
-        didSet {
-            updateColors()
-        }
-    }
-
-    /// A UIColor value that determines the color used for the text when error message is not `nil`
-    @IBInspectable dynamic open var textErrorColor: UIColor? {
-        didSet {
-            updateColors()
-        }
-    }
-
-    /// A UIColor value that determines the color used for the title label when error message is not `nil`
-    @IBInspectable dynamic open var titleErrorColor: UIColor? {
-        didSet {
-            updateColors()
-        }
-    }
-
-    /// A UIColor value that determines the color used for the title label and line when text field is disabled
-    @IBInspectable dynamic open var disabledColor: UIColor = UIColor(white: 0.88, alpha: 1.0) {
-        didSet {
-            updateControl()
-            updatePlaceholder()
-        }
-    }
-
-    /// A UIColor value that determines the text color of the title label when editing
-    @IBInspectable dynamic open var selectedTitleColor: UIColor = .blue {
-        didSet {
-            updateTitleColor()
-        }
-    }
-
-    // MARK: View components
-
-    /// The internal `UILabel` that displays the selected, deselected title or error message based on the current state.
-    open var titleLabel: UILabel!
-
-    /// The internal `UILabel` that displays error messsage if `errorMessagePlacement` is `.bottom`.
-    open var errorLabel: UILabel!
-
-    // MARK: Properties
-
-    /**
-     The formatter used before displaying content in the title label.
-     This can be the `title`, `selectedTitle` or the `errorMessage`.
-     The default implementation converts the text to uppercase.
-     */
-    open var titleFormatter: ((String) -> String) = { (text: String) -> String in
-        if #available(iOS 9.0, *) {
-            return text.localizedUppercase
-        } else {
-            return text.uppercased()
-        }
-    }
-
-    /**
-     Identifies whether the text object should hide the text being entered.
-     */
-    override open var isSecureTextEntry: Bool {
-        set {
-            super.isSecureTextEntry = newValue
-            fixCaretPosition()
-        }
-        get {
-            return super.isSecureTextEntry
-        }
-    }
-
-    /// A String value for the error message to display.
-    @IBInspectable
-    open var errorMessage: String? {
-        didSet {
-            updateControl(true)
-        }
-    }
-
-    /// The backing property for the highlighted property
-    fileprivate var _highlighted: Bool = false
-
-    /**
-     A Boolean value that determines whether the receiver is highlighted.
-     When changing this value, highlighting will be done with animation
-     */
-    override open var isHighlighted: Bool {
-        get {
-            return _highlighted
-        }
-        set {
-            _highlighted = newValue
-            updateTitleColor()
-        }
-    }
-
-    /// A Boolean value that determines whether the textfield is being edited or is selected.
-    open var editingOrSelected: Bool {
-        return super.isEditing || isSelected
-    }
-
-    /// A Boolean value that determines whether the receiver has an error message.
-    open var hasErrorMessage: Bool {
-        return errorMessage != nil && errorMessage != ""
-    }
-
-    fileprivate var _renderingInInterfaceBuilder: Bool = false
-
-    /// The text content of the textfield
-    @IBInspectable
-    override open var text: String? {
-        didSet {
-            updateControl(false)
-        }
-    }
-
-    /**
-     The String to display when the input field is empty.
-     The placeholder can also appear in the title label when both `title` `selectedTitle` and are `nil`.
-     */
-    @IBInspectable
-    override open var placeholder: String? {
-        didSet {
-            setNeedsDisplay()
-            updatePlaceholder()
-            updateTitleLabel()
-        }
-    }
-
-    /// The String to display when the textfield is editing and the input is not empty.
-    @IBInspectable open var selectedTitle: String? {
-        didSet {
-            updateControl()
-        }
-    }
-
-    /// The String to display when the textfield is not editing and the input is not empty.
-    @IBInspectable open var title: String? {
-        didSet {
-            updateControl()
-        }
-    }
-
-    // Determines whether the field is selected. When selected, the title floats above the textbox.
-    open override var isSelected: Bool {
-        didSet {
-            updateControl(true)
-        }
-    }
-
-    // MARK: - Initializers
-
-    /**
-     Initializes the control
-     - parameter frame the frame of the control
-     */
-    override public init(frame: CGRect) {
-        super.init(frame: frame)
-        init_SkyFloatingLabelTextField()
-    }
-
-    /**
-     Intialzies the control by deserializing it
-     - parameter aDecoder the object to deserialize the control from
-     */
-    required public init?(coder aDecoder: NSCoder) {
-        super.init(coder: aDecoder)
-        init_SkyFloatingLabelTextField()
-    }
-
-    fileprivate final func init_SkyFloatingLabelTextField() {
-        borderStyle = .roundedRect
-        createTitleLabel()
-        createErrorLabel()
-        updateColors()
-        addEditingChangedObserver()
-        updateTextAligment()
-    }
-
-    fileprivate func addEditingChangedObserver() {
-        self.addTarget(self, action: #selector(SkyFloatingLabelTextField.editingChanged), for: .editingChanged)
-    }
-
-    /**
-     Invoked when the editing state of the textfield changes. Override to respond to this change.
-     */
-    @objc open func editingChanged() {
-        updateControl(true)
-        updateTitleLabel(true)
-    }
-
-    // MARK: create components
-
-    fileprivate func createTitleLabel() {
-        let titleLabel = UILabel()
-        titleLabel.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        titleLabel.backgroundColor = .white
-        titleLabel.layer.borderWidth = 0.0
-        titleLabel.font = titleFont
-        titleLabel.alpha = 0.0
+    if !isEnabled {
+      titleLabel.textColor = disabledColor
+    } else if hasErrorMessage && errorMessagePlacement == .default {
+      titleLabel.textColor = titleErrorColor ?? errorColor
+    } else {
+      if editingOrSelected || isHighlighted {
+        titleLabel.textColor = selectedTitleColor
+      } else {
         titleLabel.textColor = titleColor
+      }
+    }
+  }
 
-        addSubview(titleLabel)
-        self.titleLabel = titleLabel
+  fileprivate func updateTextColor() {
+    if !isEnabled {
+      super.textColor = disabledColor
+    } else if hasErrorMessage {
+      super.textColor = textErrorColor ?? errorColor
+    } else {
+      super.textColor = cachedTextColor
+    }
+  }
+
+  // MARK: - Title handling
+
+  fileprivate func updateTitleLabel(_ animated: Bool = false) {
+    guard let titleLabel = titleLabel else {
+      return
     }
 
-    fileprivate func createErrorLabel() {
-        let errorLabel = UILabel()
-        errorLabel.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        errorLabel.font = titleFont
-        errorLabel.alpha = 0.0
-        errorLabel.textColor = errorColor
+    var titleText: String?
+    var errorText: String?
 
-        addSubview(errorLabel)
-        self.errorLabel = errorLabel
-    }
-
-    // MARK: Responder handling
-
-    /**
-     Attempt the control to become the first responder
-     - returns: True when successfull becoming the first responder
-     */
-    @discardableResult
-    override open func becomeFirstResponder() -> Bool {
-        let result = super.becomeFirstResponder()
-        updateControl(true)
-        return result
-    }
-
-    /**
-     Attempt the control to resign being the first responder
-     - returns: True when successfull resigning being the first responder
-     */
-    @discardableResult
-    override open func resignFirstResponder() -> Bool {
-        let result = super.resignFirstResponder()
-        updateControl(true)
-        return result
-    }
-
-    /// update colors when is enabled changed
-    override open var isEnabled: Bool {
-        didSet {
-            updateControl()
-            updatePlaceholder()
-        }
-    }
-
-    // MARK: - View updates
-
-    fileprivate func updateControl(_ animated: Bool = false) {
-        updateColors()
-        updateTitleLabel(animated)
-    }
-
-    // MARK: - Color updates
-
-    /// Update the colors for the control. Override to customize colors.
-    open func updateColors() {
-        updateTitleColor()
-        updateTextColor()
-        updateErrorLabelColor()
-    }
-
-    fileprivate func updateErrorLabelColor() {
-        errorLabel.textColor = errorColor
-    }
-
-    fileprivate func updateTitleColor() {
-        guard let titleLabel = titleLabel else {
-            return
-        }
-
-        if !isEnabled {
-            titleLabel.textColor = disabledColor
-        } else if hasErrorMessage && errorMessagePlacement == .default {
-            titleLabel.textColor = titleErrorColor ?? errorColor
+    if errorMessagePlacement == .default {
+      if hasErrorMessage {
+        titleText = titleFormatter(errorMessage!)
+      } else {
+        if editingOrSelected {
+          titleText = selectedTitleOrTitlePlaceholder()
+          if titleText == nil {
+            titleText = titleOrPlaceholder()
+          }
         } else {
-            if editingOrSelected || isHighlighted {
-                titleLabel.textColor = selectedTitleColor
-            } else {
-                titleLabel.textColor = titleColor
-            }
+          titleText = titleOrPlaceholder()
         }
+      }
+    } else {
+      if hasErrorMessage {
+        errorText = titleFormatter(errorMessage!)
+      }
+      if editingOrSelected {
+        titleText = selectedTitleOrTitlePlaceholder()
+        if titleText == nil {
+          titleText = titleOrPlaceholder()
+        }
+      } else {
+        titleText = titleOrPlaceholder()
+      }
     }
+    titleLabel.text = titleText
+    titleLabel.font = titleFont
 
-    fileprivate func updateTextColor() {
-        if !isEnabled {
-            super.textColor = disabledColor
-        } else if hasErrorMessage {
-            super.textColor = textErrorColor ?? errorColor
-        } else {
-            super.textColor = cachedTextColor
-        }
+    errorLabel.text = errorText
+    errorLabel.font = titleFont
+    updateTitleVisibility(animated)
+    updateErrorVisibility(animated)
+  }
+
+  fileprivate var _titleVisible: Bool = false
+
+  /*
+   *   Set this value to make the title visible
+   */
+  open func setTitleVisible(
+    _ titleVisible: Bool,
+    animated: Bool = false,
+    animationCompletion: ((_ completed: Bool) -> Void)? = nil
+  ) {
+    if _titleVisible == titleVisible {
+      return
     }
+    _titleVisible = titleVisible
+    updateTitleColor()
+    updateTitleVisibility(animated, completion: animationCompletion)
+  }
 
-    // MARK: - Title handling
-
-    fileprivate func updateTitleLabel(_ animated: Bool = false) {
-        guard let titleLabel = titleLabel else {
-            return
-        }
-
-        var titleText: String?
-        var errorText: String?
-
-        if errorMessagePlacement == .default {
-            if hasErrorMessage {
-                titleText = titleFormatter(errorMessage!)
-            } else {
-                if editingOrSelected {
-                    titleText = selectedTitleOrTitlePlaceholder()
-                    if titleText == nil {
-                        titleText = titleOrPlaceholder()
-                    }
-                } else {
-                    titleText = titleOrPlaceholder()
-                }
-            }
-        } else {
-            if hasErrorMessage {
-                errorText = titleFormatter(errorMessage!)
-            }
-            if editingOrSelected {
-                titleText = selectedTitleOrTitlePlaceholder()
-                if titleText == nil {
-                    titleText = titleOrPlaceholder()
-                }
-            } else {
-                titleText = titleOrPlaceholder()
-            }
-        }
-        titleLabel.text = titleText
-        titleLabel.font = titleFont
-
-        errorLabel.text = errorText
-        errorLabel.font = titleFont
-        updateTitleVisibility(animated)
-        updateErrorVisibility(animated)
+  /**
+   Returns whether the title is being displayed on the control.
+   - returns: True if the title is displayed on the control, false otherwise.
+   */
+  open func isTitleVisible() -> Bool {
+    if errorMessagePlacement == .default {
+      return hasText || hasErrorMessage || _titleVisible
+    } else {
+      return hasText || _titleVisible
     }
+  }
 
-    fileprivate var _titleVisible: Bool = false
+  open func isErrorVisible() -> Bool {
+    return hasErrorMessage
+  }
 
-    /*
-     *   Set this value to make the title visible
-     */
-    open func setTitleVisible(
-        _ titleVisible: Bool,
-        animated: Bool = false,
-        animationCompletion: ((_ completed: Bool) -> Void)? = nil
-    ) {
-        if _titleVisible == titleVisible {
-            return
-        }
-        _titleVisible = titleVisible
-        updateTitleColor()
-        updateTitleVisibility(animated, completion: animationCompletion)
+  fileprivate func updateTitleVisibility(_ animated: Bool = false, completion: ((_ completed: Bool) -> Void)? = nil) {
+    let alpha: CGFloat = isTitleVisible() ? 1.0 : 0.0
+    let frame: CGRect = titleLabelRectForBounds(bounds, editing: isTitleVisible())
+    let updateBlock = { () -> Void in
+      self.titleLabel.alpha = alpha
+      self.titleLabel.frame = frame
     }
-
-    /**
-     Returns whether the title is being displayed on the control.
-     - returns: True if the title is displayed on the control, false otherwise.
-     */
-    open func isTitleVisible() -> Bool {
-        if errorMessagePlacement == .default {
-            return hasText || hasErrorMessage || _titleVisible
-        } else {
-            return hasText || _titleVisible
-        }
-    }
-
-    open func isErrorVisible() -> Bool {
-        return hasErrorMessage
-    }
-
-    fileprivate func updateTitleVisibility(_ animated: Bool = false, completion: ((_ completed: Bool) -> Void)? = nil) {
-        let alpha: CGFloat = isTitleVisible() ? 1.0 : 0.0
-        let frame: CGRect = titleLabelRectForBounds(bounds, editing: isTitleVisible())
-        let updateBlock = { () -> Void in
-            self.titleLabel.alpha = alpha
-            self.titleLabel.frame = frame
-        }
-        if animated {
+    if animated {
 #if swift(>=4.2)
-            let animationOptions: UIView.AnimationOptions = .curveEaseOut
+      let animationOptions: UIView.AnimationOptions = .curveEaseOut
 #else
-            let animationOptions: UIViewAnimationOptions = .curveEaseOut
+      let animationOptions: UIViewAnimationOptions = .curveEaseOut
 #endif
-            let duration = isTitleVisible() ? titleFadeInDuration : titleFadeOutDuration
-            UIView.animate(withDuration: duration, delay: 0, options: animationOptions, animations: { () -> Void in
-                updateBlock()
-            }, completion: completion)
-        } else {
-            updateBlock()
-            completion?(true)
-        }
+      let duration = isTitleVisible() ? titleFadeInDuration : titleFadeOutDuration
+      UIView.animate(withDuration: duration, delay: 0, options: animationOptions, animations: { () -> Void in
+        updateBlock()
+      }, completion: completion)
+    } else {
+      updateBlock()
+      completion?(true)
     }
+  }
 
-    fileprivate func updateErrorVisibility(_ animated: Bool = false, completion: ((_ completed: Bool) -> Void)? = nil) {
-        let alpha: CGFloat = isErrorVisible() ? 1.0 : 0.0
-        let frame: CGRect = errorLabelRectForBounds(bounds, editing: isErrorVisible())
-        let updateBlock = { () -> Void in
-            self.errorLabel.alpha = alpha
-            self.errorLabel.frame = frame
-        }
-        if animated {
+  fileprivate func updateErrorVisibility(_ animated: Bool = false, completion: ((_ completed: Bool) -> Void)? = nil) {
+    let alpha: CGFloat = isErrorVisible() ? 1.0 : 0.0
+    let frame: CGRect = errorLabelRectForBounds(bounds, editing: isErrorVisible())
+    let updateBlock = { () -> Void in
+      self.errorLabel.alpha = alpha
+      self.errorLabel.frame = frame
+    }
+    if animated {
 #if swift(>=4.2)
-            let animationOptions: UIView.AnimationOptions = .curveEaseOut
+      let animationOptions: UIView.AnimationOptions = .curveEaseOut
 #else
-            let animationOptions: UIViewAnimationOptions = .curveEaseOut
+      let animationOptions: UIViewAnimationOptions = .curveEaseOut
 #endif
-            let duration = isErrorVisible() ? titleFadeInDuration : titleFadeOutDuration
-            UIView.animate(withDuration: duration, delay: 0, options: animationOptions, animations: { () -> Void in
-                updateBlock()
-            }, completion: completion)
-        } else {
-            updateBlock()
-            completion?(true)
-        }
+      let duration = isErrorVisible() ? titleFadeInDuration : titleFadeOutDuration
+      UIView.animate(withDuration: duration, delay: 0, options: animationOptions, animations: { () -> Void in
+        updateBlock()
+      }, completion: completion)
+    } else {
+      updateBlock()
+      completion?(true)
+    }
+  }
+
+  // MARK: - Positioning Overrides
+
+  /**
+   Calculate the bounds for the title label. Override to create a custom size title field.
+   - parameter bounds: The current bounds of the title
+   - parameter editing: True if the control is selected or highlighted
+   - returns: The rectangle that the title label should render in
+   */
+  open func titleLabelRectForBounds(_ bounds: CGRect, editing: Bool) -> CGRect {
+    if editing {
+      return CGRect(x: 16, y: -(bounds.size.height / 2 - titleHeight()), width: titleWidth(), height: titleHeight())
+    }
+    return CGRect(x: 16, y: titleHeight(), width: bounds.size.width, height: titleHeight())
+  }
+
+  /**
+   Calculate the bounds for the error label. Override to create a custom size error field.
+   - parameter bounds: The current bounds of the title
+   - parameter editing: True if the control is selected or highlighted
+   - returns: The rectangle that the title label should render in
+   */
+  open func errorLabelRectForBounds(_ bounds: CGRect, editing: Bool) -> CGRect {
+    if errorMessagePlacement == .default {
+      return CGRect.zero
+    } else {
+      if editing {
+        return CGRect(x: 0, y: 0, width: bounds.size.width, height: errorHeight())
+      }
+      return CGRect(x: 0, y: 0, width: bounds.size.width, height: errorHeight())
+    }
+  }
+
+  /**
+   Calculate the height of the title label.
+   -returns: the calculated height of the title label. Override to size the title with a different height
+   */
+  open func titleHeight() -> CGFloat {
+    if let titleLabel = titleLabel,
+       let font = titleLabel.font {
+      return CGFloat(ceilf(Float(font.lineHeight)))
+    }
+    return 15.0
+  }
+
+  /**
+   Calculate the width of the title label.
+   -returns: the calculated width of the title label. Override to size the title with a different width
+   */
+  open func titleWidth() -> CGFloat {
+    if let font = titleLabel.font {
+      let fontAttributes = [NSAttributedString.Key.font: font]
+      let text = titleLabel.text
+      let size = (text! as NSString).size(withAttributes: fontAttributes)
+      return CGFloat(ceilf(Float(size.width)))
+    }
+    return 15.0
+  }
+
+  /**
+   Calculate the height of the error label.
+   -returns: the calculated height of the error label. Override to size the error with a different height
+   */
+  open func errorHeight() -> CGFloat {
+    if let errorLabel = errorLabel,
+       let font = errorLabel.font {
+      return font.lineHeight
+    }
+    return 15.0
+  }
+
+  /**
+   Calculate the height of the textfield.
+   -returns: the calculated height of the textfield. Override to size the textfield with a different height
+   */
+  open func textHeight() -> CGFloat {
+    guard let font = self.font else {
+      return 0.0
     }
 
-    // MARK: - Positioning Overrides
+    return font.lineHeight + 7.0
+  }
 
-    /**
-     Calculate the bounds for the title label. Override to create a custom size title field.
-     - parameter bounds: The current bounds of the title
-     - parameter editing: True if the control is selected or highlighted
-     - returns: The rectangle that the title label should render in
-     */
-    open func titleLabelRectForBounds(_ bounds: CGRect, editing: Bool) -> CGRect {
-        if editing {
-            return CGRect(x: 16, y: -(bounds.size.height / 2 - titleHeight()), width: titleWidth(), height: titleHeight())
-        }
-        return CGRect(x: 16, y: titleHeight(), width: bounds.size.width, height: titleHeight())
+  // MARK: - Layout
+
+  /// Invoked when the interface builder renders the control
+  override open func prepareForInterfaceBuilder() {
+    super.prepareForInterfaceBuilder()
+
+    borderStyle = .roundedRect
+
+    isSelected = true
+    _renderingInInterfaceBuilder = true
+    updateControl(false)
+    invalidateIntrinsicContentSize()
+  }
+
+  /// Invoked by layoutIfNeeded automatically
+  override open func layoutSubviews() {
+    super.layoutSubviews()
+
+    titleLabel.frame = titleLabelRectForBounds(bounds, editing: isTitleVisible() || _renderingInInterfaceBuilder)
+    errorLabel.frame = errorLabelRectForBounds(bounds, editing: isErrorVisible() || _renderingInInterfaceBuilder)
+  }
+
+  /**
+   Calculate the content size for auto layout
+
+   - returns: the content size to be used for auto layout
+   */
+  override open var intrinsicContentSize: CGSize {
+    if errorMessagePlacement == .bottom {
+      return CGSize(width: bounds.size.width, height: titleHeight() + textHeight() + errorHeight())
+    } else {
+      return CGSize(width: bounds.size.width, height: titleHeight() + textHeight())
     }
+  }
 
-    /**
-     Calculate the bounds for the error label. Override to create a custom size error field.
-     - parameter bounds: The current bounds of the title
-     - parameter editing: True if the control is selected or highlighted
-     - returns: The rectangle that the title label should render in
-     */
-    open func errorLabelRectForBounds(_ bounds: CGRect, editing: Bool) -> CGRect {
-        if errorMessagePlacement == .default {
-            return CGRect.zero
-        } else {
-            if editing {
-                return CGRect(x: 0, y: 0, width: bounds.size.width, height: errorHeight())
-            }
-            return CGRect(x: 0, y: 0, width: bounds.size.width, height: errorHeight())
-        }
+  // MARK: - Helpers
+
+  fileprivate func titleOrPlaceholder() -> String? {
+    guard var title = title ?? placeholder else {
+      return nil
     }
-
-    /**
-     Calculate the height of the title label.
-     -returns: the calculated height of the title label. Override to size the title with a different height
-     */
-    open func titleHeight() -> CGFloat {
-        if let titleLabel = titleLabel,
-           let font = titleLabel.font {
-            return CGFloat(ceilf(Float(font.lineHeight)))
-        }
-        return 15.0
+    if isRequired {
+      title = title.replacingOccurrences(of: " *", with: "", options: NSString.CompareOptions.literal, range: nil)
     }
+    return titleFormatter(title)
+  }
 
-    /**
-     Calculate the width of the title label.
-     -returns: the calculated width of the title label. Override to size the title with a different width
-     */
-    open func titleWidth() -> CGFloat {
-        if let font = titleLabel.font {
-            let fontAttributes = [NSAttributedString.Key.font: font]
-            let text = titleLabel.text
-            let size = (text! as NSString).size(withAttributes: fontAttributes)
-            return CGFloat(ceilf(Float(size.width)))
-        }
-        return 15.0
+  fileprivate func selectedTitleOrTitlePlaceholder() -> String? {
+    guard let title = selectedTitle ?? title ?? placeholder else {
+      return nil
     }
-
-    /**
-     Calculate the height of the error label.
-     -returns: the calculated height of the error label. Override to size the error with a different height
-     */
-    open func errorHeight() -> CGFloat {
-        if let errorLabel = errorLabel,
-           let font = errorLabel.font {
-            return font.lineHeight
-        }
-        return 15.0
-    }
-
-    /**
-     Calculate the height of the textfield.
-     -returns: the calculated height of the textfield. Override to size the textfield with a different height
-     */
-    open func textHeight() -> CGFloat {
-        guard let font = self.font else {
-            return 0.0
-        }
-
-        return font.lineHeight + 7.0
-    }
-
-    // MARK: - Layout
-
-    /// Invoked when the interface builder renders the control
-    override open func prepareForInterfaceBuilder() {
-        super.prepareForInterfaceBuilder()
-
-        borderStyle = .roundedRect
-
-        isSelected = true
-        _renderingInInterfaceBuilder = true
-        updateControl(false)
-        invalidateIntrinsicContentSize()
-    }
-
-    /// Invoked by layoutIfNeeded automatically
-    override open func layoutSubviews() {
-        super.layoutSubviews()
-
-        titleLabel.frame = titleLabelRectForBounds(bounds, editing: isTitleVisible() || _renderingInInterfaceBuilder)
-        errorLabel.frame = errorLabelRectForBounds(bounds, editing: isErrorVisible() || _renderingInInterfaceBuilder)
-    }
-
-    /**
-     Calculate the content size for auto layout
-
-     - returns: the content size to be used for auto layout
-     */
-    override open var intrinsicContentSize: CGSize {
-        if errorMessagePlacement == .bottom {
-            return CGSize(width: bounds.size.width, height: titleHeight() + textHeight() + errorHeight())
-        } else {
-            return CGSize(width: bounds.size.width, height: titleHeight() + textHeight())
-        }
-    }
-
-    // MARK: - Helpers
-
-    fileprivate func titleOrPlaceholder() -> String? {
-        guard let title = title ?? placeholder else {
-            return nil
-        }
-        return titleFormatter(title)
-    }
-
-    fileprivate func selectedTitleOrTitlePlaceholder() -> String? {
-        guard let title = selectedTitle ?? title ?? placeholder else {
-            return nil
-        }
-        return titleFormatter(title)
-    }
+    return titleFormatter(title)
+  }
 } // swiftlint:disable:this file_length

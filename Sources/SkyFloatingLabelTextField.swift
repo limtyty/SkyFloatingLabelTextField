@@ -83,6 +83,13 @@ open class SkyFloatingLabelTextField: UITextField { // swiftlint:disable:this ty
         }
     }
 
+  /// A Bool value that determines text is required
+  @IBInspectable dynamic open var isRequired: Bool = false {
+      didSet {
+          updatePlaceholder()
+      }
+  }
+
     /// A UIFont value that determines text color of the placeholder label
     @objc dynamic open var placeholderFont: UIFont? {
         didSet {
@@ -110,26 +117,36 @@ open class SkyFloatingLabelTextField: UITextField { // swiftlint:disable:this ty
             return
         }
         let color = isEnabled ? placeholderColor : disabledColor
-#if swift(>=4.2)
+        #if swift(>=4.2)
+      if !isRequired {
         attributedPlaceholder = NSAttributedString(
             string: placeholder,
             attributes: [
                 NSAttributedString.Key.foregroundColor: color, NSAttributedString.Key.font: font
             ]
         )
-#elseif swift(>=4.0)
+      }else{
+        let normalAttribute = [NSAttributedString.Key.foregroundColor: UIColor.black, NSAttributedString.Key.font: UIFont.systemFont(ofSize: 15)]
+        let requiredAttribute = [NSAttributedString.Key.foregroundColor: UIColor.red, NSAttributedString.Key.font: UIFont.systemFont(ofSize: 25)]
+
+        let partOne = NSMutableAttributedString(string: placeholder, attributes: normalAttribute)
+        let partTwo = NSMutableAttributedString(string: " *", attributes: requiredAttribute)
+        partOne.append(partTwo)
+        attributedPlaceholder = partOne
+      }
+        #elseif swift(>=4.0)
         attributedPlaceholder = NSAttributedString(
             string: placeholder,
             attributes: [
                 NSAttributedStringKey.foregroundColor: color, NSAttributedStringKey.font: font
             ]
         )
-#else
+        #else
         attributedPlaceholder = NSAttributedString(
             string: placeholder,
             attributes: [NSForegroundColorAttributeName: color, NSFontAttributeName: font]
         )
-#endif
+        #endif
     }
 
     /// A UIFont value that determines the text font of the title label

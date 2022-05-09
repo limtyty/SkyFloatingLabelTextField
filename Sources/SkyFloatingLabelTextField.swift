@@ -370,23 +370,6 @@ open class SkyFloatingLabelTextField: UITextField { // swiftlint:disable:this ty
     titleLabel.backgroundColor = .white
     titleLabel.layer.borderWidth = 0.0
     titleLabel.font = titleFont
-    if !isRequired {
-      attributedPlaceholder = NSAttributedString(
-        string: placeholder,
-        attributes: [
-          NSAttributedString.Key.foregroundColor: color, NSAttributedString.Key.font: font
-        ]
-      )
-    }else{
-      let normalAttribute = [NSAttributedString.Key.foregroundColor: color, NSAttributedString.Key.font: font]
-      let requiredAttribute = [NSAttributedString.Key.foregroundColor: UIColor.red, NSAttributedString.Key.font: font]
-
-      let partOne = NSMutableAttributedString(string: placeholder, attributes: normalAttribute)
-      let partTwo = NSMutableAttributedString(string: " *", attributes: requiredAttribute)
-      partOne.append(partTwo)
-      attributedPlaceholder = partOne
-    }
-
     titleLabel.alpha = 0.0
     titleLabel.textColor = titleColor
 

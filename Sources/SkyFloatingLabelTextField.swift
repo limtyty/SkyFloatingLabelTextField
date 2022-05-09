@@ -723,8 +723,12 @@ open class SkyFloatingLabelTextField: UITextField { // swiftlint:disable:this ty
   }
 
   fileprivate func selectedTitleOrTitlePlaceholder() -> String? {
-    guard let title = selectedTitle ?? title ?? placeholder else {
+    guard var title = selectedTitle ?? title ?? placeholder else {
       return nil
+    }
+
+    if isRequired {
+      title = title.replacingOccurrences(of: " *", with: "", options: NSString.CompareOptions.literal, range: nil)
     }
     return titleFormatter(title)
   }

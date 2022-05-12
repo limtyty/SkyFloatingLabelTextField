@@ -133,7 +133,7 @@ open class SkyFloatingLabelTextField: UITextField { // swiftlint:disable:this ty
       let partTwo = NSMutableAttributedString(string: " *", attributes: requiredAttribute)
       partOne.append(partTwo)
       attributedPlaceholder = partOne
-    }
+    } 
 #elseif swift(>=4.0)
     attributedPlaceholder = NSAttributedString(
       string: placeholder,
@@ -603,7 +603,7 @@ open class SkyFloatingLabelTextField: UITextField { // swiftlint:disable:this ty
    */
   open func titleLabelRectForBounds(_ bounds: CGRect, editing: Bool) -> CGRect {
     if editing {
-      return CGRect(x: 16, y: -(bounds.size.height / 2 - titleHeight()), width: titleWidth(), height: titleHeight())
+      return CGRect(x: 16, y: -(bounds.size.height / 2 - titleHeight() * 1.5), width: titleWidth(), height: titleHeight())
     }
     return CGRect(x: 16, y: titleHeight(), width: bounds.size.width, height: titleHeight())
   }
